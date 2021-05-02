@@ -1,0 +1,2 @@
+database:
+  URL: "postgres://postgres:postgres@localhost:5432/gxample?sslmode=disable"
