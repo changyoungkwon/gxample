@@ -1,2 +1,5 @@
 database:
-  URL: "postgres://postgres:postgres@localhost:5432/gxample?sslmode=disable"
+  url: "postgres://postgres:postgres@localhost:5432/gxample?sslmode=disable"
+api:
+  port: 3000
+  enable_cors: true

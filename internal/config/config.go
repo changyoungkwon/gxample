@@ -11,11 +11,18 @@ var config Config
 // Config contains all configurations used by application
 type Config struct {
 	Database DatabaseConfig
+	API      APIConfig
 }
 
 // DatabaseConfig contains all configurations used by datbase
 type DatabaseConfig struct {
 	URL string
+}
+
+// APIConfig contains all configuations used by httpserver
+type APIConfig struct {
+	EnableCORS bool
+	Port       int
 }
 
 // Get returns configurations initialied by config.file. Has zero-value if key is not set
@@ -36,7 +43,11 @@ func init() {
 	// returns config. filled with zero-values if config is empty
 	config = Config{
 		Database: DatabaseConfig{
-			URL: viper.GetString("database.URL"),
+			URL: viper.GetString("database.url"),
+		},
+		API: APIConfig{
+			EnableCORS: viper.GetBool("api.enable_cors"),
+			Port:       viper.GetInt("api.port"),
 		},
 	}
 }
