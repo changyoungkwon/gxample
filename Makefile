@@ -24,6 +24,8 @@ fmt: ## run format
 .PHONY: clean
 clean: ## clean build artifacts
 	@rm -rf ./out || true
+	go clean -modcache
+	go clean -cache
 
 .PHONY: lint
 lint: ## run golint

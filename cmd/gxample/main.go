@@ -2,30 +2,24 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-	"time"
+	"os"
 
-	"github.com/changyoungkwon/gxample/internal/config"
-	"github.com/changyoungkwon/gxample/internal/database"
-	"github.com/changyoungkwon/gxample/internal/routes"
+	"github.com/changyoungkwon/gxample/cmd/gxample/cli"
+	"github.com/spf13/cobra"
 )
 
+// RootCmd represents the base command when called without any subcommands
+var RootCmd = &cobra.Command{
+	Use:   "gxample",
+	Short: "Gxample",
+}
+
 func main() {
-	conn := database.DBConn()
-	if err := database.CheckConn(conn); err != nil {
-		fmt.Printf("fatal error while database connection check, %s", err)
-	}
+	RootCmd.AddCommand(cli.ServeCmd)
+	RootCmd.AddCommand(cli.GendocCmd)
 
-	svr := &http.Server{
-		Handler:      routes.Router(),
-		Addr:         fmt.Sprintf("0.0.0.0:%d", config.Get().API.Port),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
-	}
-
-	if err := svr.ListenAndServe(); err != nil {
-		if err != http.ErrServerClosed {
-			fmt.Printf("something went wrong, %s", err)
-		}
+	if err := RootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }

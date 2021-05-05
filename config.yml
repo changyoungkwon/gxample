@@ -3,3 +3,5 @@ database:
 api:
   port: 3000
   enable_cors: true
+log:
+  level: "info"

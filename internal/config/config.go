@@ -12,6 +12,7 @@ var config Config
 type Config struct {
 	Database DatabaseConfig
 	API      APIConfig
+	Log      LogConfig
 }
 
 // DatabaseConfig contains all configurations used by datbase
@@ -23,6 +24,11 @@ type DatabaseConfig struct {
 type APIConfig struct {
 	EnableCORS bool
 	Port       int
+}
+
+// LogConfig contains LogLevel, which can be debug,info,warning,fatal,panic
+type LogConfig struct {
+	Level string
 }
 
 // Get returns configurations initialied by config.file. Has zero-value if key is not set
@@ -48,6 +54,9 @@ func init() {
 		API: APIConfig{
 			EnableCORS: viper.GetBool("api.enable_cors"),
 			Port:       viper.GetInt("api.port"),
+		},
+		Log: LogConfig{
+			Level: viper.GetString("log.level"),
 		},
 	}
 }
