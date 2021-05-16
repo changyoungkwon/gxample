@@ -1,34 +1,23 @@
 package database
 
 import (
-	"context"
 	"fmt"
 
-	"github.com/go-pg/pg"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-var conn *pg.DB
+var conn *gorm.DB
 
 // DBConn returns a postgres connection pool.
-func DBConn() *pg.DB {
+func DBConn() *gorm.DB {
 	return conn
 }
 
-// CheckConn check if connections vlaid
-func CheckConn(db *pg.DB) error {
-	ctx := context.Background()
-	_, err := db.ExecContext(ctx, "SELECT 1")
-	return err
-}
-
 func init() {
-	opt, err := pg.ParseURL(databaseURL)
+	var err error
+	conn, err = gorm.Open(postgres.Open(databaseURL), &gorm.Config{})
 	if err != nil {
-		panic(fmt.Errorf("fatal errors making connections to database %s", err))
-	}
-
-	conn = pg.Connect(opt)
-	if err := CheckConn(conn); err != nil {
 		panic(fmt.Errorf("fatal errors making connection to database %s", err))
 	}
 }

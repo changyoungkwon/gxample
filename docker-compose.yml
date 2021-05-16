@@ -1,0 +1,25 @@
+verison: '3.6'
+
+services:
+  postgres:
+    image: postgres:latest
+    volumes:
+      - db_data:/var/lib/postgres/data
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+
+  cookerserver:
+    build:
+      context: .
+    depends_on:
+      - postgres
+    restart: on-failure
+    ports:
+      - ${COOKERSERVER_PORT}:3000
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres/${POSTGRES_DB}
+

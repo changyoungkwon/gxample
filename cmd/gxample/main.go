@@ -17,6 +17,7 @@ var RootCmd = &cobra.Command{
 func main() {
 	RootCmd.AddCommand(cli.ServeCmd)
 	RootCmd.AddCommand(cli.GendocCmd)
+	RootCmd.AddCommand(cli.MigrateCmd)
 
 	if err := RootCmd.Execute(); err != nil {
 		fmt.Println(err)
