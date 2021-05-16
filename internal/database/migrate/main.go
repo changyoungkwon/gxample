@@ -11,12 +11,39 @@ import (
 func getMigrations() []*gormigrate.Migration {
 	return []*gormigrate.Migration{
 		{
-			ID: "202105162056",
+			ID: "202105162358",
 			Migrate: func(tx *gorm.DB) error {
-				return tx.AutoMigrate(&models.Ingredient{})
+				if err := tx.AutoMigrate(&models.RecipeCategory{}); err != nil {
+					return err
+				}
+				if err := tx.AutoMigrate(&models.Ingredient{}); err != nil {
+					return err
+				}
+				if err := tx.AutoMigrate(&models.User{}); err != nil {
+					return err
+				}
+				if err := tx.AutoMigrate(&models.Recipe{}); err != nil {
+					return err
+				}
+				if err := tx.AutoMigrate(&models.Tag{}); err != nil {
+					return err
+				}
+				if err := tx.AutoMigrate(&models.IngredientQuantity{}); err != nil {
+					return err
+				}
+				return nil
 			},
 			Rollback: func(tx *gorm.DB) error {
-				return tx.Migrator().DropTable("ingredients")
+				if err := tx.Migrator().DropTable("recipes"); err != nil {
+					return err
+				}
+				if err := tx.Migrator().DropTable("recipe_categories"); err != nil {
+					return err
+				}
+				if err := tx.Migrator().DropTable("ingredients"); err != nil {
+					return err
+				}
+				return nil
 			},
 		},
 	}

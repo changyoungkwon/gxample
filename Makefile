@@ -1,4 +1,4 @@
-
+include docker.env
 .PHONY: download-deps
 download-deps: ## download dependencies
 	@echo Download go.sum dependencies
@@ -26,6 +26,14 @@ clean: ## clean build artifacts
 	@rm -rf ./out || true
 	go clean -modcache
 	go clean -cache
+
+.PHONY: reset-db
+reset-db: ## reset database including migration
+	@PGPASSWORD=${POSTGRES_PASSWORD} psql -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} -d ${POSTGRES_DB} -a -f scripts/reset_db.sql 
+.PHONY: dump-db
+dump-db: ## dump database
+	@PGPASSWORD=${POSTGRES_PASSWORD} pg_dump -h ${POSTGRES_HOST} -p ${POSTGRES_PORT} -U ${POSTGRES_USER} ${POSTGRES_DB} > dump.sql 
+	
 
 .PHONY: lint
 lint: ## run golint

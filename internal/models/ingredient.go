@@ -4,9 +4,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// Ingredient supports ingredient type
+// Ingredient saves available ingredients
 type Ingredient struct {
 	gorm.Model
-	Name          string
-	ThumbnailPath *string
+	Name      string    `gorm:"unique;not null"`
+	ImagePath string    // must be form of /static/image/ingredient/{id}/*.jpg
+	Recipes   []*Recipe `gorm:"many2many:ingredient_quantity;"`
 }
