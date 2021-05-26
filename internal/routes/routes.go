@@ -1,13 +1,12 @@
 package routes
 
 import (
-	"encoding/json"
 	"net/http"
 	"strings"
 
-	"github.com/changyoungkwon/gxample/internal/config"
 	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/routes/health"
+	"github.com/changyoungkwon/gxample/internal/routes/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
@@ -49,9 +48,6 @@ func Router() http.Handler {
 	// router
 	attachFileServer(router, "/static", http.Dir("static"))
 	router.Get("/health", health.Handler)
-	router.Get("/api", func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(config.Get())
-	})
+	router.Mount("/api", service.Router())
 	return cors.AllowAll().Handler(router)
 }

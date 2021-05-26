@@ -29,19 +29,6 @@ var MigrateCmd = &cobra.Command{
 	},
 }
 
-// ResetCmd reset all migrations done before
-var ResetCmd = &cobra.Command{
-	Use:   "reset",
-	Short: "Redo all migrations",
-	Run: func(cmd *cobra.Command, args []string) {
-		if err := migrate.RollbackLast(); err != nil {
-			logging.Logger.Errorf("errors during rollback last migration, %s", err)
-			panic(err)
-		}
-		logging.Logger.Infof("rollback succesfully")
-	},
-}
-
 func init() {
 	MigrateCmd.Flags().BoolVarP(&rollback, "rollback", "r", false, "rollback last migration")
 }
