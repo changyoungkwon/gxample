@@ -1,0 +1,9 @@
+database:
+  url: "postgres://admin:meatball1234@postgres:20000/cookerserver?sslmode=disable"
+api:
+  port: 3000
+  enable_cors: true
+log:
+  level: "debug"
+static:
+  path: "static"

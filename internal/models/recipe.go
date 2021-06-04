@@ -10,10 +10,10 @@ import (
 
 // RecipeStep descripes the step
 type RecipeStep struct {
-	Index      int
-	Desciption string
-	Tip        string
-	ImagePath  string
+	Index       int    `json:"index"`
+	Description string `json:"description"`
+	Tip         string `json:"tip"`
+	ImagePath   string `json:"image_path"`
 }
 
 // RecipeSteps explain each step to make an recipe
@@ -22,16 +22,18 @@ type RecipeSteps []RecipeStep
 // Recipe explains how to cook
 type Recipe struct {
 	gorm.Model
-	Title            string `gorm:"not null"`
-	ImagePath        string
-	Ease             string `gorm:"not null"`
-	PreparationTime  int    `gorm:"not null"`
-	RecipeCategoryID int
-	Ingredients      []*Ingredient `gorm:"many2many:ingredient_quantity;"`
-	WriterID         string
-	Steps            RecipeSteps `gorm:"type:json"`
-	Tags             []*Tag      `gorm:"many2many:recipe_tags;"`
-	Clippers         []*User     `gorm:"many2many:recipe_clippers;joinForeignKey:RecipeID;"`
+	Title                string                `gorm:"not null" json:"title"`
+	ImagePath            string                `json:"image_path"`
+	Ease                 string                `gorm:"not null" json:"ease"`
+	PreparationTime      int                   `gorm:"not null" json:"preparation_time"`
+	RecipeCategoryID     int                   `json:"-"`
+	RecipeCategory       RecipeCategory        `json:"recipe_category"`
+	IngredientQuantities []*IngredientQuantity `gorm:"-" json:"ingredient_quantities"`
+	Ingredients          []*Ingredient         `gorm:"many2many:ingredient_quantity;" json:"-"`
+	WriterID             string                `json:"writer_id"`
+	Steps                RecipeSteps           `gorm:"type:json" json:"steps"`
+	Tags                 []*Tag                `gorm:"many2many:recipe_tags;constraint:OnDelete:CASCADE" json:"-"`
+	Clippers             []*User               `gorm:"many2many:recipe_clippers;joinForeignKey:RecipeID;" json:"-"`
 }
 
 // Value for custom type

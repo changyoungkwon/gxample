@@ -1,4 +1,4 @@
-package error
+package common
 
 import (
 	"net/http"

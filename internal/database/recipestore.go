@@ -19,11 +19,34 @@ func NewRecipeStore(db *gorm.DB) *RecipeStore {
 
 // Add create ingredient, update i with automatically received value, then return err
 func (s *RecipeStore) Add(i *models.Recipe) error {
-	result := s.db.Create(&i)
-	if result.Error != nil {
-		return result.Error
-	}
-	return nil
+	err := s.db.Transaction(func(tx *gorm.DB) error {
+		// tags insertion
+		for _, t := range i.Tags {
+			result := s.db.Where(&models.Tag{Name: t.Name}).FirstOrCreate(&t)
+			if result.Error != nil {
+				return result.Error
+			}
+		}
+		// ingredient insertions
+		result := s.db.Debug().Omit("Ingredients", "Tags.*").Create(&i)
+		if result.Error != nil {
+			return result.Error
+		}
+		result = s.db.Debug().First(&i.RecipeCategory, i.RecipeCategoryID)
+		if result.Error != nil {
+			return result.Error
+		}
+		// ingredient insertions
+		for _, q := range i.IngredientQuantities {
+			q.RecipeID = i.ID
+			result := s.db.Create(&q)
+			if result.Error != nil {
+				return result.Error
+			}
+		}
+		return nil
+	})
+	return err
 }
 
 // Get get ingredient by key

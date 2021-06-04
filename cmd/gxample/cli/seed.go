@@ -63,13 +63,13 @@ var seedingRecipeCategories = []*models.RecipeCategory{
 func cleanDatabase(db *gorm.DB) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		stmts := []string{
-			"DELETE FROM INGREDIENT_QUANTITY",
-			"DELETE FROM RECIPE_TAGS",
-			"DELETE FROM USERS",
-			"DELETE FROM INGREDIENTS",
-			"DELETE FROM RECIPE_CATEGORIES",
-			"DELETE FROM RECIPES",
-			"DELETE FROM TAGS",
+			"DELETE FROM INGREDIENT_QUANTITY CASCADE",
+			"DELETE FROM RECIPE_TAGS CASCADE",
+			"DELETE FROM USERS CASCADE",
+			"DELETE FROM INGREDIENTS CASCADE",
+			"DELETE FROM RECIPE_CATEGORIES CASCADE",
+			"DELETE FROM RECIPES CASCADE",
+			"DELETE FROM TAGS CASCADE",
 		}
 		for _, stmt := range stmts {
 			err := tx.Exec(stmt).Error

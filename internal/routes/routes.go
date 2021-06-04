@@ -48,6 +48,6 @@ func Router() http.Handler {
 	// router
 	attachFileServer(router, "/static", http.Dir("static"))
 	router.Get("/health", health.Handler)
-	router.Mount("/api", service.Router())
+	router.Mount("/api", service.NewRouter())
 	return cors.AllowAll().Handler(router)
 }

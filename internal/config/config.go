@@ -10,9 +10,22 @@ var config Config
 
 // Config contains all configurations used by application
 type Config struct {
-	Database DatabaseConfig
-	API      APIConfig
-	Log      LogConfig
+	Database   DatabaseConfig
+	API        APIConfig
+	Log        LogConfig
+	Eureka     EurekaConfig
+	StaticRoot string
+}
+
+// EurekaConfig contains all configurations used by eureka
+type EurekaConfig struct {
+	GatewayURL string
+	AppID      string
+	InstanceID string
+	HostName   string
+	IPAdress   string
+	Port       int
+	TTL        uint
 }
 
 // DatabaseConfig contains all configurations used by datbase
@@ -58,5 +71,15 @@ func init() {
 		Log: LogConfig{
 			Level: viper.GetString("log.level"),
 		},
+		Eureka: EurekaConfig{
+			GatewayURL: viper.GetString("eureka.gateway.url"),
+			InstanceID: viper.GetString("eureka.instance.id"),
+			AppID:      viper.GetString("eureka.instance.app"),
+			HostName:   viper.GetString("eureka.instance.hostname"),
+			IPAdress:   viper.GetString("eureka.instance.ipaddress"),
+			Port:       viper.GetInt("eureka.instance.port"),
+			TTL:        viper.GetUint("eureka.instance.ttl"),
+		},
+		StaticRoot: viper.GetString("static.path"),
 	}
 }

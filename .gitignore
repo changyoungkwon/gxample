@@ -4,6 +4,7 @@
 
 debug
 out/*
+static
 
 # Binaries for programs and plugins
 *.exe

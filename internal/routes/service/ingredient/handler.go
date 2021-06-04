@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/changyoungkwon/gxample/internal/models"
-	serviceError "github.com/changyoungkwon/gxample/internal/routes/service/error"
+	common "github.com/changyoungkwon/gxample/internal/routes/service/common"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
 )
@@ -29,12 +29,12 @@ func create(store Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var data Request
 		if err := render.Bind(req, &data); err != nil {
-			render.Render(w, req, serviceError.ErrInvalidRequest(err))
+			render.Render(w, req, common.ErrInvalidRequest(err))
 			return
 		}
 		ingredient := data.Ingredient
 		if err := store.Add(ingredient); err != nil {
-			render.Render(w, req, serviceError.ErrInvalidRequest(err))
+			render.Render(w, req, common.ErrInvalidRequest(err))
 			return
 		}
 		render.Status(req, http.StatusCreated)
@@ -49,10 +49,10 @@ func list(store Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ingredients, err := store.List()
 		if err != nil {
-			render.Render(w, r, serviceError.ErrUnknown(err))
+			render.Render(w, r, common.ErrUnknown(err))
 			return
 		}
-		responses := make([]render.Renderer, len(ingredients))
+		responses := make([]render.Renderer, 0, len(ingredients))
 		for _, i := range ingredients {
 			responses = append(responses, &Response{
 				Ingredient: &i,

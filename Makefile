@@ -1,4 +1,3 @@
-include docker.env
 .PHONY: download-deps
 download-deps: ## download dependencies
 	@echo Download go.sum dependencies
@@ -12,6 +11,10 @@ install-tools: download-deps
 .PHONY: build
 build: | fmt lint ## fmt, lint, test and build
 	go build -o ./out/gxample ./cmd/gxample
+
+.PHONY: run
+run: | build
+	./out/gxample serve
 
 .PHONY: test
 test: ## run test

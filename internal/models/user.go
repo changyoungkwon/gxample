@@ -6,7 +6,7 @@ type User struct {
 	Name           string `gorm:"unique;not null"`
 	Description    string
 	ImagePath      string
-	MyRecipes      []Recipe  `gorm:"foreignKey:WriterID"`
+	MyRecipes      []Recipe  `gorm:"foreignKey:WriterID;constraint:OnDelete=CASCADE"`
 	ClippedRecipes []*Recipe `gorm:"many2many:recipe_clippers;joinForeignKey:ClipperID"`
 	Subscribers    []User    `gorm:"many2many:user_subscribers"`
 }

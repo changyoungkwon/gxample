@@ -4,4 +4,16 @@ api:
   port: 3000
   enable_cors: true
 log:
-  level: "info"
+  level: "debug"
+eureka:
+  gateway:
+    url: "http://0.0.0.0:port/eureka"
+  instance:
+    id: "instance-id"
+    app: "cookerserver"
+    hostname: "0.0.0.0"
+    ipaddress: "0.0.0.0"
+    port: 3000
+    ttl: 30
+static:
+  path: "static"
