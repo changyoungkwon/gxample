@@ -8,23 +8,28 @@ services:
     ports:
       - 20000:5432
     environment:
-      POSTGRES_DB: "cookerserver"
-      POSTGRES_USER: "admin"
-      POSTGRES_PASSWORD: "meatballa1234"
+      POSTGRES_DB: meatball
+      POSTGRES_USER: meatball
+      POSTGRES_PASSWORD: admin1234
 
-  cookerserver:
-    build:
+  app: 
+    build: 
       context: .
-    depends_on:
-      - postgres
+      dockerfile: dev.Dockerfile
     restart: on-failure
-    ports:
-      - 3000:3000
     volumes:
-      - ./config.prod.yml:/usr/app/config.yml
-      - web-data:/usr/app/static
+    - ./cmd:/src/cmd
+    - ./internal:/src/internal
+    - ./static:/src/static
+    - app-go-pkg:/go/pkg
+    ports:
+    - 3000:3000
+    command:
+    - -c
+    - .air.toml
+    depends_on:
+    - postgres
 
 volumes:
+  app-go-pkg:
   db-data:
-  web-data:
-

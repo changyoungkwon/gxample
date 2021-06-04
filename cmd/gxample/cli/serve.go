@@ -7,18 +7,29 @@ import (
 
 	"github.com/changyoungkwon/gxample/internal/cluster"
 	"github.com/changyoungkwon/gxample/internal/config"
+	"github.com/changyoungkwon/gxample/internal/database/migrate"
 	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/routes"
 	"github.com/spf13/cobra"
 )
 
-var registerEureka = false
+var (
+	registerEureka = false
+	autoMigrate    = true
+)
 
 // ServeCmd represents the serve command
 var ServeCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start server",
 	Run: func(cmd *cobra.Command, args []string) {
+		if autoMigrate {
+			err := migrate.Migrate()
+			if err != nil {
+				logging.Logger.Errorf("error during migration, %v", err)
+				panic(err)
+			}
+		}
 		if registerEureka {
 			conn := cluster.GetConn()
 			conn.SendHeartbeatForever()

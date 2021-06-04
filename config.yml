@@ -1,5 +1,5 @@
 database:
-  url: "postgres://postgres:postgres@localhost:5432/gxample?sslmode=disable"
+  url: "postgres://meatball:admin1234@postgres:5432/meatball?sslmode=disable"
 api:
   port: 3000
   enable_cors: true

@@ -10,11 +10,12 @@ RUN apk add --update --no-cache \
 
 WORKDIR /src
 
-COPY go.mod go.sum ./
-RUN go mod download
+COPY go.mod go.sum tools.go Makefile ./
+RUN --mount=type=cache,target=/root/.cache/go-build \
+	make install-tools
 
 COPY . .
-RUN go build -o out/gxample /src/cmd/gxample/main.go
+RUN go build -o ./out/gxample ./cmd/gxample
 
 # Multi-Stage production build
 FROM alpine
@@ -22,6 +23,8 @@ FROM alpine
 VOLUME ["/usr/app/config.yml", "/usr/app/static"]
 
 # Retrieve the binary from the previous stage
+ENV TZ=Asia/Seoul
+RUN apk add --update --no-cache tzdata
 WORKDIR /usr/app
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs
 COPY --from=builder /src/out/gxample ./
