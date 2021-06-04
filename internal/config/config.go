@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/spf13/viper"
 )
 
@@ -50,35 +48,28 @@ func Get() *Config {
 }
 
 func init() {
-	// set config options
-	viper.SetConfigName("config")
-	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./")
-	err := viper.ReadInConfig()
-	if err != nil {
-		// panic behaves like throw: call defer, go downward until recover
-		panic(fmt.Errorf("fatal errors reading config file %s", err))
-	}
-	// returns config. filled with zero-values if config is empty
+	// set config options(all variables required)
+	viper.SetEnvPrefix("COOKER")
+	viper.AutomaticEnv()
 	config = Config{
 		Database: DatabaseConfig{
-			URL: viper.GetString("database.url"),
+			URL: viper.GetString("database_url"),
 		},
 		API: APIConfig{
-			EnableCORS: viper.GetBool("api.enable_cors"),
-			Port:       viper.GetInt("api.port"),
+			EnableCORS: true,
+			Port:       viper.GetInt("api_port"),
 		},
 		Log: LogConfig{
-			Level: viper.GetString("log.level"),
+			Level: viper.GetString("log_level"),
 		},
 		Eureka: EurekaConfig{
-			GatewayURL: viper.GetString("eureka.gateway.url"),
-			InstanceID: viper.GetString("eureka.instance.id"),
-			AppID:      viper.GetString("eureka.instance.app"),
-			HostName:   viper.GetString("eureka.instance.hostname"),
-			IPAdress:   viper.GetString("eureka.instance.ipaddress"),
-			Port:       viper.GetInt("eureka.instance.port"),
-			TTL:        viper.GetUint("eureka.instance.ttl"),
+			GatewayURL: viper.GetString("eureka_gateway_url"),
+			InstanceID: viper.GetString("eureka_instance_id"),
+			AppID:      viper.GetString("eureka_instance_app_id"),
+			HostName:   viper.GetString("eureka_instance_hostname"),
+			IPAdress:   viper.GetString("eureka_instance_ipaddress"),
+			Port:       viper.GetInt("eureka_instance_port"),
+			TTL:        viper.GetUint("eureka_instance_ttl"),
 		},
 		StaticRoot: viper.GetString("static.path"),
 	}

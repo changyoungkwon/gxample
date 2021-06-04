@@ -8,8 +8,8 @@ services:
     ports:
       - 20000:5432
     environment:
-      POSTGRES_DB: meatball
-      POSTGRES_USER: meatball
+      POSTGRES_DB: cooker
+      POSTGRES_USER: cooker
       POSTGRES_PASSWORD: admin1234
 
   app: 
@@ -27,6 +27,8 @@ services:
     command:
     - -c
     - .air.toml
+    env_file:
+    - dev.env
     depends_on:
     - postgres
 
