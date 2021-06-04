@@ -11,8 +11,7 @@ RUN apk add --update --no-cache \
 WORKDIR /src
 
 COPY go.mod go.sum tools.go Makefile ./
-RUN --mount=type=cache,target=/root/.cache/go-build \
-	make install-tools
+RUN make install-tools
 
 COPY . .
 RUN go build -o ./out/gxample ./cmd/gxample
