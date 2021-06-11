@@ -65,10 +65,9 @@ func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
 }
 
 // ToIngredient binds request to entity
-func dtoToIngredient(i *ingredientRequestJSON, imagePath string) *models.Ingredient {
+func dtoToIngredient(i *ingredientRequestJSON) *models.Ingredient {
 	return &models.Ingredient{
-		Name:      i.Name,
-		ImagePath: imagePath,
+		Name: i.Name,
 	}
 }
 

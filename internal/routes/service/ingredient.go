@@ -2,6 +2,9 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/changyoungkwon/gxample/internal/models"
@@ -19,6 +22,7 @@ type IngredientRepo interface {
 // NewIngredientRouter provies routers related to resource ingredient
 func NewIngredientRouter(repo IngredientRepo) chi.Router {
 	router := chi.NewRouter()
+	router.Use(imageHandleMiddleware)
 	router.Post("/", createIngredient(repo))
 	router.Get("/", listIngredients(repo))
 	return router
@@ -27,12 +31,16 @@ func NewIngredientRouter(repo IngredientRepo) chi.Router {
 // create handles post
 func createIngredient(repo IngredientRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var data IngredientRequest
-		if err := render.Bind(req, &data); err != nil {
+		var data ingredientRequestJSON
+
+		// unmarshal form-data to ingredient
+		err := json.Unmarshal([]byte(req.FormValue("json")), &data)
+		if err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
-		ingredient := data.Ingredient
+		ingredient := dtoToIngredient(&data)
+		err = bindImagePathOnIngredient(ingredient, req.Context())
 		if err := repo.Add(ingredient); err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
@@ -57,6 +65,19 @@ func listIngredients(repo IngredientRepo) http.HandlerFunc {
 		render.Status(r, http.StatusOK)
 		render.RenderList(w, r, responses)
 	}
+}
+
+func bindImagePathOnIngredient(i *models.Ingredient, c context.Context) error {
+	imagePaths, ok := c.Value(imageHandleKey).(map[string]string)
+	if !ok {
+		return errors.New("no imagehandle middleware gives wrong")
+	}
+	if filepath, ok := imagePaths["file"]; !ok {
+		i.ImagePath = ""
+	} else {
+		i.ImagePath = filepath
+	}
+	return nil
 }
 
 // Bind binds additional parameters on Request after decode

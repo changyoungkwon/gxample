@@ -1,17 +1,15 @@
 package service
 
 import (
+	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path"
 
-	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
-	"github.com/google/uuid"
 )
 
 // RecipeRepo abstracts repository
@@ -24,87 +22,32 @@ type RecipeRepo interface {
 // NewRecipeRouter exports router for ingredient resource
 func NewRecipeRouter(repo RecipeRepo) chi.Router {
 	router := chi.NewRouter()
+	router.Use(imageHandleMiddleware)
 	router.Post("/", createRecipe(repo))
 	router.Get("/", listRecipes(repo))
 	return router
 }
 
-func saveMultipartFile(r *http.Request, key string) (string, error) {
-	file, header, err := r.FormFile(key)
-	// if file is missig, return error
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	// set image path, then save
-	dirname, _ := uuid.NewUUID()
-	imageDir := path.Join(StaticRootPath, dirname.String())
-	if err := os.MkdirAll(imageDir, os.FileMode(0755)); err != nil {
-		return "", err
-	}
-	imagePath := path.Join(imageDir, header.Filename)
-	out, err := os.Create(imagePath)
-	if err != nil {
-		return "", err
-	}
-	defer out.Close()
-	_, err = io.Copy(out, file) // save file
-	if err != nil {
-		return "", err
-	}
-	return imagePath, nil
-}
-
-func parseImages(rcp *models.Recipe, req *http.Request) error {
-	imagePath, err := saveMultipartFile(req, "recipe")
-	if err != nil {
-		if err == http.ErrMissingFile {
-			logging.Logger.Warnf("missing file %v", err)
-		} else {
-			logging.Logger.Errorf("error while save multipart-images, %v", err)
-			return err
-		}
-	}
-	rcp.ImagePath = imagePath
-	for i, step := range rcp.Steps {
-		key := fmt.Sprintf("step_%d", int(step.Index))
-		logging.Logger.Info("check %s", key)
-		imagePath, err := saveMultipartFile(req, key)
-		if err != nil {
-			if err == http.ErrMissingFile {
-				logging.Logger.Warnf("missing file %v", err)
-				continue
-			}
-			logging.Logger.Errorf("error while save multipart-images, %v", err)
-			return err
-		}
-		rcp.Steps[i].ImagePath = imagePath
-	}
-	return nil
-}
-
 // create handle post
 func createRecipe(repo RecipeRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
-		var data RecipeRequest
+		var data recipeRequestJSON
 
-		// handles form
-		err := req.ParseMultipartForm(32 << 20) // 32MB
+		// unmarshal form-data to recipe
+		err := json.Unmarshal([]byte(req.FormValue("json")), &data)
 		if err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
+			return
 		}
-
-		// handles json
-		data.JSON = []byte(req.FormValue("json"))
-		recipe, err := data.ToRecipe()
+		recipe, err := dtoToRecipe(&data, "")
 		if err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
 
-		// parse images
-		if err := parseImages(recipe, req); err != nil {
+		// fill imagepath
+		err = bindImagePathOnRecipe(req.Context(), recipe)
+		if err != nil {
 			render.Render(w, req, ErrUnknown(err))
 			return
 		}
@@ -114,7 +57,8 @@ func createRecipe(repo RecipeRepo) http.HandlerFunc {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
-		dto, err := dtoFromRecipe(&recipe)
+
+		dto, err := dtoFromRecipe(recipe)
 		if err != nil {
 			render.Render(w, req, ErrUnknown(err))
 			return
@@ -143,6 +87,28 @@ func listRecipes(repo RecipeRepo) http.HandlerFunc {
 		render.Status(r, http.StatusOK)
 		render.RenderList(w, r, responses)
 	}
+}
+
+// bindImagePathOnRecipe bind imagepaths in context to recipe
+func bindImagePathOnRecipe(c context.Context, r *models.Recipe) error {
+	imagePaths, ok := c.Value(imageHandleKey).(map[string]string)
+	if !ok {
+		return errors.New("no imagehandle middleware gives wrong")
+	}
+	if mainpath, ok := imagePaths["file"]; !ok {
+		r.ImagePath = ""
+	} else {
+		r.ImagePath = mainpath
+	}
+	for i, step := range r.Steps {
+		key := fmt.Sprintf("step_%d", step.Index)
+		if steppath, ok := imagePaths[key]; !ok {
+			r.Steps[i].ImagePath = ""
+		} else {
+			r.Steps[i].ImagePath = steppath
+		}
+	}
+	return nil
 }
 
 // Bind binds additional parameters on IngredientRequest after decode
