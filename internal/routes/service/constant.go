@@ -1,4 +1,4 @@
-package common
+package service
 
 import "github.com/changyoungkwon/gxample/internal/config"
 
