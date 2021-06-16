@@ -10,7 +10,7 @@ install-tools: download-deps
 
 .PHONY: gendoc
 gendoc: | install-tools
-	swag init -g ./internal/routes/routes.go --parseInternal
+	@swag init -g ./internal/routes/routes.go --parseInternal
 
 .PHONY: build
 build: | fmt lint ## fmt, lint, test and build

@@ -14,20 +14,21 @@ COPY go.mod go.sum tools.go Makefile ./
 RUN make install-tools
 
 COPY . .
+RUN make gendoc
 RUN go build -o ./out/gxample ./cmd/gxample
 
 # Multi-Stage production build
 FROM alpine
 
-VOLUME ["/usr/app/config.yml", "/usr/app/static"]
+VOLUME ["/usr/app/config.yml", "/usr/app/static","/usr/app/docs"]
 
 # Retrieve the binary from the previous stage
 ENV TZ=Asia/Seoul
 RUN apk add --update --no-cache tzdata
 WORKDIR /usr/app
+COPY --from=builder /src/docs/swagger.yaml ./docs/api-docs
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs
 COPY --from=builder /src/out/gxample ./
-# COPY --from=builder /src/config.yml ./config.yml
 
 # Set the binary as the entrypoint of the container
 ENTRYPOINT ["/usr/app/gxample"]
