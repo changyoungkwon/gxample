@@ -88,6 +88,7 @@ func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 
 	keyPathMap := make(map[string]string)
 	var receivedJSON []byte
+	dirname, _ := uuid.NewUUID()
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
@@ -105,7 +106,6 @@ func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 		} else if !validFileFormName.MatchString(key) {
 			return nil, nil, errors.New("invalid multipart key")
 		}
-		dirname, _ := uuid.NewUUID()
 		filename := path.Join(StaticRootPath, dirname.String(), part.FileName())
 		err = saveMultipart(part, filename, true)
 		if err != nil {
