@@ -75,8 +75,6 @@ func dtoToIngredient(i *ingredientRequestJSON) *models.Ingredient {
 func dtoFromIngredient(i *models.Ingredient) *IngredientResponse {
 	return &IngredientResponse{
 		ID:        i.ID,
-		CreatedAt: i.CreatedAt,
-		UpdatedAt: i.UpdatedAt,
 		Name:      i.Name,
 		ImagePath: i.ImagePath,
 	}
@@ -129,8 +127,6 @@ func dtoToRecipeCategory(r *recipeCategoryRequestJSON) *models.RecipeCategory {
 func dtoFromRecipeCategory(i *models.RecipeCategory) *RecipeCategoryResponse {
 	return &RecipeCategoryResponse{
 		ID:        i.ID,
-		CreatedAt: i.CreatedAt,
-		UpdatedAt: i.UpdatedAt,
 		Name:      i.Name,
 		ImagePath: i.ImagePath,
 	}

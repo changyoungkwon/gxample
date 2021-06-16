@@ -21,11 +21,9 @@ type ingredientRequestJSON struct {
 
 // IngredientResponse wraps response
 type IngredientResponse struct {
-	ID        uint      `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	ImagePath string    `json:"image_path"`
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	ImagePath string `json:"image_path"`
 }
 
 // RecipeCategoryRequest body to post/update new recipe-category
@@ -42,11 +40,9 @@ type recipeCategoryRequestJSON struct {
 
 // RecipeCategoryResponse body to response
 type RecipeCategoryResponse struct {
-	ID        uint      `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Name      string    `json:"name"`
-	ImagePath string    `json:"image_path"`
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	ImagePath string `json:"image_path"`
 }
 
 // IngredientQuantityRequest body to post/update new recipe-category
