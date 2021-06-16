@@ -15,7 +15,7 @@ func NewRouter() http.Handler {
 		NewIngredientRouter(database.NewIngredientStore(db)))
 	router.Mount("/recipes",
 		NewRecipeRouter(database.NewRecipeStore(db)))
-	router.Mount("/recipe-categories",
+	router.Mount("/recipecategories",
 		NewRecipeCategoryRouter(database.NewRecipeCategoryStore(db)))
 	return router
 }

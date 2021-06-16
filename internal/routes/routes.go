@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 // attachFileServer conveniently sets up a http.FileServer handler to serve
@@ -33,6 +34,12 @@ func attachFileServer(r chi.Router, path string, root http.FileSystem) {
 }
 
 // Router routes root
+// @title cooker API
+// @version 1.0
+// @description cookerserver
+// @contact.name changyoung
+// @host cooker:3000
+// @BasePath /v2/docs-api
 func Router() http.Handler {
 	router := chi.NewRouter()
 
@@ -45,9 +52,13 @@ func Router() http.Handler {
 	})) // logger
 	router.Use(middleware.Recoverer) // recoverer logs the panics, returns 500
 
-	// router
+	// router: file server, docs, and service
 	attachFileServer(router, "/static", http.Dir("static"))
+	attachFileServer(router, "/swagger", http.Dir("docs"))
 	router.Get("/health", health.Handler)
 	router.Mount("/api", service.NewRouter())
+	router.Mount("/v2/api-docs", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/swagger.yaml"),
+	))
 	return cors.AllowAll().Handler(router)
 }

@@ -21,19 +21,37 @@ type RecipeCategoryRepo interface {
 // NewRecipeCategoryRouter provies routers related to resource recipeCategory
 func NewRecipeCategoryRouter(repo RecipeCategoryRepo) chi.Router {
 	router := chi.NewRouter()
-	router.Use(imageHandleMiddleware)
-	router.Post("/", createRecipeCategory(repo))
+	router.Group(func(r chi.Router) {
+		r.Use(multipartJSONHandler)
+		r.Post("/", createRecipeCategory(repo))
+	})
 	router.Get("/", listRecipeCategories(repo))
 	return router
 }
 
-// create handles post
+// Create godoc
+// @Summary Upload recipe-category
+// @Description Upload single recipe-category. The name must be unique
+// @Accept  mpfd
+// @Produce json
+// @Param file formData file false "image of recipe-category"
+// @Param json formData string true "json structure of recipe-category"
+// @Success 200 {object} service.RecipeCategoryResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipecategories [post]
 func createRecipeCategory(repo RecipeCategoryRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var data recipeCategoryRequestJSON
 
 		// unmarshal form-data to recipeCategory
-		err := json.Unmarshal([]byte(req.FormValue("json")), &data)
+		rawdata, err := getMultipartJSON(req.Context())
+		if err != nil {
+			render.Render(w, req, ErrInvalidRequest(err))
+			return
+		}
+		err = json.Unmarshal(rawdata, &data)
 		if err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
@@ -49,7 +67,16 @@ func createRecipeCategory(repo RecipeCategoryRepo) http.HandlerFunc {
 	}
 }
 
-// list handles list
+// List godoc
+// @Summary List all uploaded recipe-categories
+// @Description List all uploaded recpie-categories
+// @Accept  json
+// @Produce json
+// @Success 200 {array} service.RecipeCategoryResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipecategories [get]
 func listRecipeCategories(repo RecipeCategoryRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		recipeCategories, err := repo.List()

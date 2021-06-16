@@ -1,4 +1,3 @@
-// ingredient.go contains ingredienthandler
 package service
 
 import (
@@ -22,25 +21,42 @@ type IngredientRepo interface {
 // NewIngredientRouter provies routers related to resource ingredient
 func NewIngredientRouter(repo IngredientRepo) chi.Router {
 	router := chi.NewRouter()
-	router.Use(imageHandleMiddleware)
-	router.Post("/", createIngredient(repo))
+	router.Group(func(r chi.Router) {
+		r.Use(multipartJSONHandler)
+		r.Post("/", createIngredient(repo))
+	})
 	router.Get("/", listIngredients(repo))
 	return router
 }
 
-// create handles post
+// Create godoc
+// @Summary Upload an ingredient
+// @Description Upload single ingredient. The name must be unique
+// @Accept  mpfd
+// @Produce json
+// @Param file formData file false "image of ingredient"
+// @Param json formData string true "json structure of ingredient"
+// @Success 200 {object} service.IngredientResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/ingredients [post]
 func createIngredient(repo IngredientRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, req *http.Request) {
 		var data ingredientRequestJSON
-
 		// unmarshal form-data to ingredient
-		err := json.Unmarshal([]byte(req.FormValue("json")), &data)
+		rawdata, err := getMultipartJSON(req.Context())
+		if err != nil {
+			render.Render(w, req, ErrInvalidRequest(err))
+			return
+		}
+		err = json.Unmarshal(rawdata, &data)
 		if err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
 		ingredient := dtoToIngredient(&data)
-		err = bindImagePathOnIngredient(ingredient, req.Context())
+		err = bindImagePathOnIngredient(req.Context(), ingredient)
 		if err := repo.Add(ingredient); err != nil {
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
@@ -50,7 +66,16 @@ func createIngredient(repo IngredientRepo) http.HandlerFunc {
 	}
 }
 
-// list handles list
+// List godoc
+// @Summary List all uploaded ingredients
+// @Description List all uploaded ingredients
+// @Accept  json
+// @Produce json
+// @Success 200 {array} service.IngredientResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/ingredients [get]
 func listIngredients(repo IngredientRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ingredients, err := repo.List()
@@ -67,7 +92,7 @@ func listIngredients(repo IngredientRepo) http.HandlerFunc {
 	}
 }
 
-func bindImagePathOnIngredient(i *models.Ingredient, c context.Context) error {
+func bindImagePathOnIngredient(c context.Context, i *models.Ingredient) error {
 	imagePaths, ok := c.Value(imageHandleKey).(map[string]string)
 	if !ok {
 		return errors.New("no imagehandle middleware gives wrong")

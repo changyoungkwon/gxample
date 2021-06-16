@@ -1,0 +1,330 @@
+basePath: /v2/docs-api
+definitions:
+  models.RecipeStep:
+    properties:
+      description:
+        type: string
+      image_path:
+        type: string
+      index:
+        type: integer
+      tip:
+        type: string
+    type: object
+  service.ErrResponse:
+    properties:
+      code:
+        description: application-specific error code
+        type: integer
+      error:
+        description: application-level error message, for debugging
+        type: string
+      status:
+        description: user-level status message
+        type: string
+    type: object
+  service.IngredientQuantityResponse:
+    properties:
+      ingredient:
+        $ref: '#/definitions/service.IngredientResponse'
+      quantity:
+        type: object
+    type: object
+  service.IngredientResponse:
+    properties:
+      id:
+        type: integer
+      image_path:
+        type: string
+      name:
+        type: string
+    type: object
+  service.RecipeCategoryResponse:
+    properties:
+      id:
+        type: integer
+      image_path:
+        type: string
+      name:
+        type: string
+    type: object
+  service.RecipeResponse:
+    properties:
+      created_at:
+        type: string
+      ease:
+        type: string
+      id:
+        type: integer
+      image_path:
+        type: string
+      ingredient_quantities:
+        items:
+          $ref: '#/definitions/service.IngredientQuantityResponse'
+        type: array
+      is_clipped:
+        type: boolean
+      preparation_time:
+        type: integer
+      recipe_category:
+        $ref: '#/definitions/service.RecipeCategoryResponse'
+      steps:
+        items:
+          $ref: '#/definitions/models.RecipeStep'
+        type: array
+      tags:
+        items:
+          type: string
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+      writer:
+        $ref: '#/definitions/service.UserResponse'
+    type: object
+  service.UserResponse:
+    properties:
+      description:
+        type: string
+      image_path:
+        type: string
+      name:
+        type: string
+    type: object
+host: cooker:3000
+info:
+  contact:
+    name: changyoung
+  description: cookerserver
+  title: cooker API
+  version: "1.0"
+paths:
+  /api/ingredients:
+    get:
+      consumes:
+      - application/json
+      description: List all uploaded ingredients
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.IngredientResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+      summary: List all uploaded ingredients
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload single ingredient. The name must be unique
+      parameters:
+      - description: image of ingredient
+        in: formData
+        name: file
+        type: file
+      - description: json structure of ingredient
+        in: formData
+        name: json
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.IngredientResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+      summary: Upload an ingredient
+  /api/recipecategories:
+    get:
+      consumes:
+      - application/json
+      description: List all uploaded recpie-categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.RecipeCategoryResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+      summary: List all uploaded recipe-categories
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload single recipe-category. The name must be unique
+      parameters:
+      - description: image of recipe-category
+        in: formData
+        name: file
+        type: file
+      - description: json structure of recipe-category
+        in: formData
+        name: json
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.RecipeCategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+      summary: Upload recipe-category
+  /api/recipes:
+    get:
+      consumes:
+      - application/json
+      description: List all uploaded recipes
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/service.RecipeResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+      summary: List all uploaded recipes
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload single recipe. The name must be unique
+      parameters:
+      - description: image of recipe
+        in: formData
+        name: file
+        type: file
+      - description: image of step 1
+        in: formData
+        name: step_1
+        type: file
+      - description: image of step 2
+        in: formData
+        name: step_2
+        type: file
+      - description: image of step 3
+        in: formData
+        name: step_3
+        type: file
+      - description: image of step 4
+        in: formData
+        name: step_4
+        type: file
+      - description: image of step 5
+        in: formData
+        name: step_5
+        type: file
+      - description: json structure of recipe
+        in: formData
+        name: json
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.RecipeResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "404":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+        default:
+          description: ""
+          schema:
+            $ref: '#/definitions/service.ErrResponse'
+      summary: Upload the recipe
+swagger: "2.0"

@@ -8,6 +8,10 @@ install-tools: download-deps
 	@echo Installing tools from tools.go
 	@cat tools.go | grep _ | awk -F'"' '{print $$2}' | xargs -tI % go install %
 
+.PHONY: gendoc
+gendoc: | install-tools
+	swag init -g ./internal/routes/routes.go --parseInternal
+
 .PHONY: build
 build: | fmt lint ## fmt, lint, test and build
 	go build -o ./out/gxample ./cmd/gxample

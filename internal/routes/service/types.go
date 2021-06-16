@@ -54,7 +54,7 @@ type IngredientQuantityRequest struct {
 // IngredientQuantityResponse body to response
 type IngredientQuantityResponse struct {
 	Ingredient IngredientResponse `json:"ingredient"`
-	Quantity   interface{}        `json:"quantity"`
+	Quantity   interface{}        `json:"quantity" swaggertype:"object"`
 }
 
 // RecipeRequest wraps request

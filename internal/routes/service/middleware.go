@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"os"
@@ -15,12 +16,13 @@ import (
 	"github.com/google/uuid"
 )
 
-type ctxKeyImageUpload int
+type ctxKeyMultipart int
 
 // ImageUploadKey is the key holds the unique rueqest
 const (
-	imageHandleKey     ctxKeyImageUpload = 0
-	maximumContentSize int64             = 32 << 20
+	imageHandleKey     ctxKeyMultipart = 0
+	jsonHandleKey      ctxKeyMultipart = 1
+	maximumContentSize int64           = 32 << 20
 )
 
 var (
@@ -28,11 +30,11 @@ var (
 	validJSONFormName = regexp.MustCompile(`^json$`)
 )
 
-// ImageHandleMiddlware is a middlware that handles multipart formdata, insert key-value
-func imageHandleMiddleware(next http.Handler) http.Handler {
+// multipartJSONHandler is a middlware that handles multipart formdata, and insert key-value
+func multipartJSONHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		// inserts key to the context
-		imagePaths, err := saveMultipartFiles(r)
+		imagePaths, receivedJSON, err := parseMultipartRequest(r)
 		// when not part of multipart-form
 		if err != nil {
 			render.Render(w, r, ErrInvalidRequest(err))
@@ -40,9 +42,19 @@ func imageHandleMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, imageHandleKey, imagePaths)
+		ctx = context.WithValue(ctx, jsonHandleKey, receivedJSON)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(fn)
+}
+
+// getMultipartJSON get data saved by middleware
+func getMultipartJSON(c context.Context) ([]byte, error) {
+	data, ok := c.Value(jsonHandleKey).([]byte)
+	if !ok {
+		return nil, errors.New("unable to fetch JSON from context")
+	}
+	return data, nil
 }
 
 // saveMultipart save a file into specified name
@@ -67,14 +79,15 @@ func saveMultipart(part *multipart.Part, filename string, force bool) error {
 	return nil
 }
 
-// saveMultipartFiles save images, returns formdata key and saved path
-func saveMultipartFiles(r *http.Request) (map[string]string, error) {
+// parseMultipartRequest save images, returns formdata key and saved path
+func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 	reader, err := r.MultipartReader()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	keyPathMap := make(map[string]string)
+	var receivedJSON []byte
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
@@ -85,17 +98,20 @@ func saveMultipartFiles(r *http.Request) (map[string]string, error) {
 		defer part.Close()
 		key := part.FormName()
 		if validJSONFormName.MatchString(key) {
-			continue
+			receivedJSON, err = ioutil.ReadAll(part)
+			if err != nil {
+				return nil, nil, err
+			}
 		} else if !validFileFormName.MatchString(key) {
-			return nil, errors.New("invalid multipart key")
+			return nil, nil, errors.New("invalid multipart key")
 		}
 		dirname, _ := uuid.NewUUID()
 		filename := path.Join(StaticRootPath, dirname.String(), part.FileName())
 		err = saveMultipart(part, filename, true)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		keyPathMap[key] = filename
 	}
-	return keyPathMap, nil
+	return keyPathMap, receivedJSON, nil
 }
