@@ -54,7 +54,7 @@ func Router() http.Handler {
 
 	// router: file server, docs, and service
 	attachFileServer(router, "/static", http.Dir("static"))
-	attachFileServer(router, "/swagger", http.Dir("docs"))
+	attachFileServer(router, "/v2", http.Dir("docs"))
 	router.Get("/health", health.Handler)
 	router.Mount("/api", service.NewRouter())
 	router.Mount("/v2/api-docs", httpSwagger.Handler(
