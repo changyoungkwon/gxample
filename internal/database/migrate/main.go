@@ -13,6 +13,9 @@ func getMigrations() []*gormigrate.Migration {
 		{
 			ID: "202105162358",
 			Migrate: func(tx *gorm.DB) error {
+				if err := tx.AutoMigrate(&models.Tag{}); err != nil {
+					return err
+				}
 				if err := tx.AutoMigrate(&models.RecipeCategory{}); err != nil {
 					return err
 				}
@@ -25,12 +28,17 @@ func getMigrations() []*gormigrate.Migration {
 				if err := tx.AutoMigrate(&models.Recipe{}); err != nil {
 					return err
 				}
-				if err := tx.AutoMigrate(&models.Tag{}); err != nil {
-					return err
-				}
 				if err := tx.AutoMigrate(&models.IngredientQuantity{}); err != nil {
 					return err
 				}
+				/*
+					if err := tx.SetupJoinTable(&models.Recipe{}, "Ingredients", &models.IngredientQuantity{}); err != nil {
+						return err
+					}
+					if err := tx.SetupJoinTable(&models.Ingredient{}, "Recipes", &models.IngredientQuantity{}); err != nil {
+						return err
+					}
+				*/
 				return nil
 			},
 			Rollback: func(tx *gorm.DB) error {
