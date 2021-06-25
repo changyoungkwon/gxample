@@ -69,7 +69,7 @@ type recipeRequestJSON struct {
 	Ease                 string                       `json:"ease"`
 	PreparationTime      int                          `json:"preparation_time"`
 	RecipeCategoryID     int                          `json:"recipe_category_id"`
-	IngredientQuantities []*IngredientQuantityRequest `json:"ingredient_quantities"`
+	IngredientQuantities []*IngredientQuantityRequest `json:"ingredients"`
 	Steps                models.RecipeSteps           `json:"steps"`
 	Tags                 []string                     `json:"tags"`
 }

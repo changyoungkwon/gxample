@@ -31,14 +31,11 @@ func getMigrations() []*gormigrate.Migration {
 				if err := tx.AutoMigrate(&models.IngredientQuantity{}); err != nil {
 					return err
 				}
-				/*
-					if err := tx.SetupJoinTable(&models.Recipe{}, "Ingredients", &models.IngredientQuantity{}); err != nil {
-						return err
-					}
-					if err := tx.SetupJoinTable(&models.Ingredient{}, "Recipes", &models.IngredientQuantity{}); err != nil {
-						return err
-					}
-				*/
+				tx.Debug().Create(&models.User{
+					ID:          "0",
+					Name:        "관리자",
+					Description: "관리자",
+				})
 				return nil
 			},
 			Rollback: func(tx *gorm.DB) error {

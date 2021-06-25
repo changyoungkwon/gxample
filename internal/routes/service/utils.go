@@ -43,7 +43,7 @@ func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
 		tags = append(tags, t.Name)
 	}
 	// ingerdient quantities
-	quantities, err := dtoFromIQuantities(r.IngredientQuantities)
+	quantities, err := dtoFromIQuantities(r)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +57,7 @@ func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
 		PreparationTime:      r.PreparationTime,
 		RecipeCategory:       *dtoFromRecipeCategory(&r.RecipeCategory),
 		IngredientQuantities: quantities,
-		Writer:               UserResponse{},
+		Writer:               *dtoToUserResponse(r.Writer),
 		Steps:                r.Steps,
 		IsClipped:            false,
 		Tags:                 tags,
@@ -98,18 +98,22 @@ func dtoToIQuantities(rs []*IngredientQuantityRequest, recipeID uint) ([]*models
 }
 
 // FromIngredientQuantity binds entity to response
-func dtoFromIQuantities(qs []*models.IngredientQuantity) ([]*IngredientQuantityResponse, error) {
+func dtoFromIQuantities(rcp *models.Recipe) ([]*IngredientQuantityResponse, error) {
 	var quantities []*IngredientQuantityResponse
+	qs := rcp.IngredientQuantities
 	for _, q := range qs {
 		var res IngredientQuantityResponse
-		err := json.Unmarshal(q.Quantity, &res)
+		err := json.Unmarshal(q.Quantity, &res.Quantity)
 		if err != nil {
 			return nil, err
 		}
-		quantities = append(quantities, &IngredientQuantityResponse{
-			Ingredient: *dtoFromIngredient(&q.Ingredient),
-			Quantity:   res,
-		})
+		for _, i := range rcp.Ingredients {
+			if q.IngredientID == i.ID {
+				res.Ingredient = *dtoFromIngredient(i)
+				quantities = append(quantities, &res)
+				break
+			}
+		}
 	}
 	return quantities, nil
 }
@@ -129,5 +133,13 @@ func dtoFromRecipeCategory(i *models.RecipeCategory) *RecipeCategoryResponse {
 		ID:        i.ID,
 		Name:      i.Name,
 		ImagePath: i.ImagePath,
+	}
+}
+
+func dtoToUserResponse(u models.User) *UserResponse {
+	return &UserResponse{
+		Name:        u.Name,
+		ImagePath:   u.ImagePath,
+		Description: u.Description,
 	}
 }

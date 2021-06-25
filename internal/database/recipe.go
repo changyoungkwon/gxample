@@ -22,30 +22,34 @@ func NewRecipeStore(db *gorm.DB) *RecipeStore {
 func (s *RecipeStore) Add(r *models.Recipe) error {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// tags insertion
-		r.WriterID = "0"
 		for _, t := range r.Tags {
-			result := s.db.Where(&models.Tag{Name: t.Name}).FirstOrCreate(&t)
+			result := tx.Where(&models.Tag{Name: t.Name}).FirstOrCreate(&t)
 			if result.Error != nil {
 				return result.Error
 			}
 		}
-		result := s.db.Debug().First(&r.RecipeCategory, r.RecipeCategoryID)
+		result := tx.Debug().First(&r.RecipeCategory, r.RecipeCategoryID)
 		if result.Error != nil {
 			return result.Error
 		}
 		// recipe insertions
 		logging.Infof("%v", r)
-		result = s.db.Debug().Omit("Ingredients", "Tags.*").Create(&r)
+		result = tx.Debug().Omit("Ingredients", "Tags.*").Create(&r)
 		if result.Error != nil {
 			return result.Error
 		}
 		// ingredient insertions
 		for _, q := range r.IngredientQuantities {
 			q.RecipeID = r.ID
-			result := s.db.Create(&q)
+			result := tx.Create(&q)
 			if result.Error != nil {
 				return result.Error
 			}
+		}
+		result = tx.Debug().Preload("Ingredients").Joins("Writer").Joins("RecipeCategory").First(&r)
+		if result.Error != nil {
+			logging.Errorf("error during bring joined tables, %v", result.Error)
+			return result.Error
 		}
 		return nil
 	})
@@ -55,18 +59,32 @@ func (s *RecipeStore) Add(r *models.Recipe) error {
 // Get get ingredient by key
 func (s *RecipeStore) Get(key int) (*models.Recipe, error) {
 	i := &models.Recipe{}
-	if result := s.db.First(&i, key); result.Error != nil {
+	var iqs []*models.IngredientQuantity
+	if result := s.db.Debug().Preload("Ingredients").Joins("RecipeCategory").Joins("Writer").First(&i, key); result.Error != nil {
 		return nil, result.Error
 	}
+	result := s.db.Debug().Where("recipe_id = ?", i.ID).Find(&iqs)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	i.IngredientQuantities = iqs
 	return i, nil
 }
 
 // List list all ingredients
 func (s *RecipeStore) List() ([]models.Recipe, error) {
 	var recipes []models.Recipe
-	result := s.db.Find(&recipes)
+	var iqs []*models.IngredientQuantity
+	result := s.db.Debug().Preload("Ingredients").Joins("RecipeCategory").Joins("Writer").Find(&recipes)
 	if result.Error != nil {
 		return nil, result.Error
+	}
+	for i, r := range recipes {
+		result = s.db.Debug().Where("recipe_id = ?", r.ID).Find(&iqs)
+		if result.Error != nil {
+			return nil, result.Error
+		}
+		recipes[i].IngredientQuantities = iqs
 	}
 	return recipes, nil
 }

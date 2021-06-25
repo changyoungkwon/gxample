@@ -113,7 +113,7 @@ func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 			if err != nil {
 				return nil, nil, err
 			}
-			keyPathMap[key] = filename
+			keyPathMap[key] = "/" + filename
 		}
 	}
 	return keyPathMap, receivedJSON, nil

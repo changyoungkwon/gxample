@@ -29,8 +29,9 @@ type Recipe struct {
 	RecipeCategoryID     int                   `json:"-"`
 	RecipeCategory       RecipeCategory        `json:"recipe_category"`
 	IngredientQuantities []*IngredientQuantity `gorm:"-" json:"ingredient_quantities"`
-	Ingredients          []*Ingredient         `gorm:"many2many:ingredient_quantity;" json:"-"`
+	Ingredients          []*Ingredient         `gorm:"many2many:ingredient_quantities;constraint:OnDelete:CASCADE" json:"-"`
 	WriterID             string                `json:"writer_id"`
+	Writer               User                  `json:"writer"`
 	Steps                RecipeSteps           `gorm:"type:json" json:"steps"`
 	Tags                 []*Tag                `gorm:"many2many:recipe_tags;constraint:OnDelete:CASCADE" json:"-"`
 	Clippers             []*User               `gorm:"many2many:recipe_clippers;joinForeignKey:RecipeID;" json:"-"`

@@ -104,7 +104,7 @@ func bindImagePathOnIngredient(c context.Context, i *models.Ingredient) error {
 	if filepath, ok := imagePaths["file"]; !ok {
 		i.ImagePath = ""
 	} else {
-		i.ImagePath = filepath
+		i.ImagePath = "/" + filepath
 	}
 	return nil
 }
