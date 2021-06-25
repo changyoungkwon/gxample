@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/go-chi/render"
 	"github.com/google/uuid"
 )
@@ -37,6 +38,7 @@ func multipartJSONHandler(next http.Handler) http.Handler {
 		imagePaths, receivedJSON, err := parseMultipartRequest(r)
 		// when not part of multipart-form
 		if err != nil {
+			logging.Errorf("error during parsing multipart, %v", err)
 			render.Render(w, r, ErrInvalidRequest(err))
 			return
 		}
@@ -105,13 +107,14 @@ func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 			}
 		} else if !validFileFormName.MatchString(key) {
 			return nil, nil, errors.New("invalid multipart key")
+		} else {
+			filename := path.Join(StaticRootPath, dirname.String(), part.FileName())
+			err = saveMultipart(part, filename, true)
+			if err != nil {
+				return nil, nil, err
+			}
+			keyPathMap[key] = filename
 		}
-		filename := path.Join(StaticRootPath, dirname.String(), part.FileName())
-		err = saveMultipart(part, filename, true)
-		if err != nil {
-			return nil, nil, err
-		}
-		keyPathMap[key] = filename
 	}
 	return keyPathMap, receivedJSON, nil
 }

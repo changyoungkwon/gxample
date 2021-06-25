@@ -1,4 +1,3 @@
-basePath: /v2/docs-api
 definitions:
   models.RecipeStep:
     properties:
@@ -92,7 +91,6 @@ definitions:
       name:
         type: string
     type: object
-host: cooker:3000
 info:
   contact:
     name: changyoung
@@ -105,6 +103,11 @@ paths:
       consumes:
       - application/json
       description: List all uploaded ingredients
+      parameters:
+      - description: name search by q
+        in: query
+        name: q
+        type: string
       produces:
       - application/json
       responses:
@@ -174,6 +177,11 @@ paths:
       consumes:
       - application/json
       description: List all uploaded recpie-categories
+      parameters:
+      - description: name search by q
+        in: query
+        name: q
+        type: string
       produces:
       - application/json
       responses:

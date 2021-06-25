@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/changyoungkwon/gxample/internal/models"
 	"gorm.io/gorm"
 )
@@ -36,9 +38,17 @@ func (s *IngredientStore) Get(key int) (*models.Ingredient, error) {
 }
 
 // List list all ingredients
-func (s *IngredientStore) List() ([]models.Ingredient, error) {
+func (s *IngredientStore) List(names []string) ([]models.Ingredient, error) {
 	var ingredients []models.Ingredient
-	result := s.db.Find(&ingredients)
+	if names == nil {
+		names = []string{}
+	}
+	// iterate over list of names
+	query := s.db
+	for _, name := range names {
+		query = query.Where("name LIKE ?", fmt.Sprintf("%%%s%%", name))
+	}
+	result := query.Find(&ingredients)
 	if result.Error != nil {
 		return nil, result.Error
 	}

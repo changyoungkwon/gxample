@@ -1,6 +1,8 @@
 package database
 
 import (
+	"fmt"
+
 	"github.com/changyoungkwon/gxample/internal/models"
 	"gorm.io/gorm"
 )
@@ -36,11 +38,21 @@ func (s *RecipeCategoryStore) Get(key int) (*models.RecipeCategory, error) {
 }
 
 // List list all recipes
-func (s *RecipeCategoryStore) List() ([]models.RecipeCategory, error) {
-	var recipes []models.RecipeCategory
-	result := s.db.Find(&recipes)
+func (s *RecipeCategoryStore) List(names []string) ([]models.RecipeCategory, error) {
+	var rcs []models.RecipeCategory
+	if names == nil {
+		names = []string{}
+	}
+
+	// iterate over list of names
+	query := s.db
+	for _, name := range names {
+		query = query.Where("name LIKE ?", fmt.Sprintf("%%%s%%", name))
+	}
+	result := query.Find(&rcs)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return recipes, nil
+
+	return rcs, nil
 }

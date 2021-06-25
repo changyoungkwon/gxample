@@ -71,6 +71,6 @@ func init() {
 			Port:       viper.GetInt("eureka_instance_port"),
 			TTL:        viper.GetUint("eureka_instance_ttl"),
 		},
-		StaticRoot: viper.GetString("static.path"),
+		StaticRoot: viper.GetString("static_path"),
 	}
 }

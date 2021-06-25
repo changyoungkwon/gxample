@@ -15,7 +15,7 @@ import (
 type RecipeCategoryRepo interface {
 	Add(i *models.RecipeCategory) error
 	Get(k int) (*models.RecipeCategory, error)
-	List() ([]models.RecipeCategory, error)
+	List(names []string) ([]models.RecipeCategory, error)
 }
 
 // NewRecipeCategoryRouter provies routers related to resource recipeCategory
@@ -72,6 +72,7 @@ func createRecipeCategory(repo RecipeCategoryRepo) http.HandlerFunc {
 // @Description List all uploaded recpie-categories
 // @Accept  json
 // @Produce json
+// @Param q query string false "name search by q"
 // @Success 200 {array} service.RecipeCategoryResponse
 // @Failure 400,404 {object} service.ErrResponse
 // @Failure 500 {object} service.ErrResponse
@@ -79,7 +80,10 @@ func createRecipeCategory(repo RecipeCategoryRepo) http.HandlerFunc {
 // @Router /api/recipecategories [get]
 func listRecipeCategories(repo RecipeCategoryRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		recipeCategories, err := repo.List()
+		// filtes only contains
+		query := r.URL.Query()
+		cond, _ := query["q"]
+		recipeCategories, err := repo.List(cond)
 		if err != nil {
 			render.Render(w, r, ErrUnknown(err))
 			return

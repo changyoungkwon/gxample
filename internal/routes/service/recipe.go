@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/models"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
@@ -53,17 +54,20 @@ func createRecipe(repo RecipeRepo) http.HandlerFunc {
 
 		rawdata, err := getMultipartJSON(req.Context())
 		if err != nil {
+			logging.Errorf("error during get multipart-json, %v", err)
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
 		err = json.Unmarshal(rawdata, &data)
 		if err != nil {
+			logging.Errorf("error during parsing json, %v", err)
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
 
-		recipe, err := dtoToRecipe(&data, "")
+		recipe, err := dtoToRecipe(&data, "0")
 		if err != nil {
+			logging.Errorf("error during conversion from dto, %v", err)
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
@@ -71,18 +75,21 @@ func createRecipe(repo RecipeRepo) http.HandlerFunc {
 		// fill imagepath
 		err = bindImagePathOnRecipe(req.Context(), recipe)
 		if err != nil {
+			logging.Errorf("error during context binding, %v", err)
 			render.Render(w, req, ErrUnknown(err))
 			return
 		}
 
 		// save all images, and save into recpie
 		if err := repo.Add(recipe); err != nil {
+			logging.Errorf("error during add recipe, %v", err)
 			render.Render(w, req, ErrInvalidRequest(err))
 			return
 		}
 
 		dto, err := dtoFromRecipe(recipe)
 		if err != nil {
+			logging.Errorf("error rendering, %v", err)
 			render.Render(w, req, ErrUnknown(err))
 			return
 		}

@@ -36,6 +36,14 @@ var doc = `{
                     "application/json"
                 ],
                 "summary": "List all uploaded ingredients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name search by q",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -140,6 +148,14 @@ var doc = `{
                     "application/json"
                 ],
                 "summary": "List all uploaded recipe-categories",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name search by q",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -525,8 +541,8 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "cooker:3000",
-	BasePath:    "/v2/docs-api",
+	Host:        "",
+	BasePath:    "",
 	Schemes:     []string{},
 	Title:       "cooker API",
 	Description: "cookerserver",

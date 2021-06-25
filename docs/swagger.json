@@ -8,8 +8,6 @@
         },
         "version": "1.0"
     },
-    "host": "cooker:3000",
-    "basePath": "/v2/docs-api",
     "paths": {
         "/api/ingredients": {
             "get": {
@@ -21,6 +19,14 @@
                     "application/json"
                 ],
                 "summary": "List all uploaded ingredients",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name search by q",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -125,6 +131,14 @@
                     "application/json"
                 ],
                 "summary": "List all uploaded recipe-categories",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "name search by q",
+                        "name": "q",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",

@@ -6,6 +6,7 @@ require (
 	github.com/ArthurHlt/go-eureka-client v1.1.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/go-chi/chi/v5 v5.0.3
+	github.com/go-chi/httplog v0.2.0 // indirect
 	github.com/go-chi/render v1.0.1
 	github.com/go-gormigrate/gormigrate/v2 v2.0.0
 	github.com/go-openapi/jsonreference v0.19.6 // indirect

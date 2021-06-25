@@ -15,7 +15,7 @@ import (
 type IngredientRepo interface {
 	Add(i *models.Ingredient) error
 	Get(k int) (*models.Ingredient, error)
-	List() ([]models.Ingredient, error)
+	List(names []string) ([]models.Ingredient, error)
 }
 
 // NewIngredientRouter provies routers related to resource ingredient
@@ -71,6 +71,7 @@ func createIngredient(repo IngredientRepo) http.HandlerFunc {
 // @Description List all uploaded ingredients
 // @Accept  json
 // @Produce json
+// @Param q query string false "name search by q"
 // @Success 200 {array} service.IngredientResponse
 // @Failure 400,404 {object} service.ErrResponse
 // @Failure 500 {object} service.ErrResponse
@@ -78,7 +79,10 @@ func createIngredient(repo IngredientRepo) http.HandlerFunc {
 // @Router /api/ingredients [get]
 func listIngredients(repo IngredientRepo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ingredients, err := repo.List()
+		// filtes only contains
+		query := r.URL.Query()
+		cond, _ := query["q"]
+		ingredients, err := repo.List(cond)
 		if err != nil {
 			render.Render(w, r, ErrUnknown(err))
 			return

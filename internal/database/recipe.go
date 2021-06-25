@@ -1,6 +1,7 @@
 package database
 
 import (
+	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/models"
 	"gorm.io/gorm"
 )
@@ -18,27 +19,29 @@ func NewRecipeStore(db *gorm.DB) *RecipeStore {
 }
 
 // Add create ingredient, update i with automatically received value, then return err
-func (s *RecipeStore) Add(i *models.Recipe) error {
+func (s *RecipeStore) Add(r *models.Recipe) error {
 	err := s.db.Transaction(func(tx *gorm.DB) error {
 		// tags insertion
-		for _, t := range i.Tags {
+		r.WriterID = "0"
+		for _, t := range r.Tags {
 			result := s.db.Where(&models.Tag{Name: t.Name}).FirstOrCreate(&t)
 			if result.Error != nil {
 				return result.Error
 			}
 		}
-		// ingredient insertions
-		result := s.db.Debug().Omit("Ingredients", "Tags.*").Create(&i)
+		result := s.db.Debug().First(&r.RecipeCategory, r.RecipeCategoryID)
 		if result.Error != nil {
 			return result.Error
 		}
-		result = s.db.Debug().First(&i.RecipeCategory, i.RecipeCategoryID)
+		// recipe insertions
+		logging.Infof("%v", r)
+		result = s.db.Debug().Omit("Ingredients", "Tags.*").Create(&r)
 		if result.Error != nil {
 			return result.Error
 		}
 		// ingredient insertions
-		for _, q := range i.IngredientQuantities {
-			q.RecipeID = i.ID
+		for _, q := range r.IngredientQuantities {
+			q.RecipeID = r.ID
 			result := s.db.Create(&q)
 			if result.Error != nil {
 				return result.Error
