@@ -3,13 +3,12 @@ package service
 import (
 	"context"
 	"errors"
-	"io"
+	"fmt"
 	"io/ioutil"
-	"mime/multipart"
+	"mime"
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 
 	"github.com/changyoungkwon/gxample/internal/logging"
@@ -59,28 +58,6 @@ func getMultipartJSON(c context.Context) ([]byte, error) {
 	return data, nil
 }
 
-// saveMultipart save a file into specified name
-// create directory recursively if force is true
-func saveMultipart(part *multipart.Part, filename string, force bool) error {
-	dirname := filepath.Dir(filename)
-	if force {
-		err := os.MkdirAll(dirname, os.FileMode(0755))
-		if err != nil {
-			return err
-		}
-	}
-	out, err := os.Create(filename)
-	if err != nil {
-		return err
-	}
-	defer out.Close()
-	_, err = io.Copy(out, part)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
 // parseMultipartRequest save images, returns formdata key and saved path
 func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 	reader, err := r.MultipartReader()
@@ -90,31 +67,72 @@ func parseMultipartRequest(r *http.Request) (map[string]string, []byte, error) {
 
 	keyPathMap := make(map[string]string)
 	var receivedJSON []byte
+	imageIndex := 0
+
+	// generate directory to save resource
 	dirname, _ := uuid.NewUUID()
+	dirpath := path.Join(StaticRootPath, dirname.String())
+	err = os.MkdirAll(dirpath, os.FileMode(0755))
+	if err != nil {
+		logging.Errorf("error creating directory, %v", err)
+		return nil, nil, err
+	}
+
 	for {
 		part, err := reader.NextPart()
 		if err != nil {
 			break
 		}
-
-		// validation
 		defer part.Close()
+
+		// actions for each keyname
 		key := part.FormName()
 		if validJSONFormName.MatchString(key) {
 			receivedJSON, err = ioutil.ReadAll(part)
 			if err != nil {
 				return nil, nil, err
 			}
-		} else if !validFileFormName.MatchString(key) {
-			return nil, nil, errors.New("invalid multipart key")
-		} else {
-			filename := path.Join(StaticRootPath, dirname.String(), part.FileName())
-			err = saveMultipart(part, filename, true)
+		} else if validFileFormName.MatchString(key) {
+			// read all bytes
+			bytes, err := ioutil.ReadAll(part)
+			if err != nil {
+				logging.Errorf("error during reading from multiparts, %v", err)
+				return nil, nil, err
+			}
+			// check if valid image, and determines extension
+			ext, err := getImageExt(bytes[:512])
+			if err != nil {
+				logging.Errorf("error due to invalid mime-type sent, %v", err)
+				return nil, nil, err
+			}
+			// save file with image
+			filename := path.Join(dirpath, fmt.Sprintf("image_%d.%s", imageIndex, ext))
+			ioutil.WriteFile(filename, bytes, os.FileMode(0755))
 			if err != nil {
 				return nil, nil, err
 			}
+			// save
 			keyPathMap[key] = "/" + filename
+			imageIndex++
+		} else {
+			return nil, nil, errors.New("invalid multipart key")
 		}
 	}
 	return keyPathMap, receivedJSON, nil
+}
+
+// getImageExt get image type based on first 512 bytes
+func getImageExt(buf []byte) (string, error) {
+	imagetype, _ := regexp.Compile("^image/[a-z]+$")
+	mimetype := http.DetectContentType(buf)
+	mediatype, _, err := mime.ParseMediaType(mimetype)
+	if err != nil {
+		logging.Errorf("error determining image ext, %v", err)
+		return "", err
+	}
+	if !imagetype.MatchString(mediatype) {
+		logging.Errorf("unexpected mediatype received, %s", mediatype)
+		return "", fmt.Errorf("unexpected mimetype %s received", mimetype)
+	}
+	return mediatype[6:], nil
 }

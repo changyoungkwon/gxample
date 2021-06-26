@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/models"
@@ -27,7 +28,11 @@ func NewRecipeRouter(repo RecipeRepo) chi.Router {
 		r.Use(multipartJSONHandler)
 		r.Post("/", createRecipe(repo))
 	})
+	router.Get("/{recipeID}", getRecipe(repo))
 	router.Get("/", listRecipes(repo))
+	router.Get("/trending", listTrendingRecipes(repo))
+	router.Get("/recommend", listRecommendRecipes(repo))
+	router.Get("/challenge", listChallengeRecipes(repo))
 	return router
 }
 
@@ -103,7 +108,9 @@ func createRecipe(repo RecipeRepo) http.HandlerFunc {
 // @Description List all uploaded recipes
 // @Accept  json
 // @Produce json
-// @Success 200 {array} service.RecipeResponse
+// @Param sort query string false "sort by field" Enums(weekly_views, created_at)
+// @Param limits query int false "numbers to fetch"
+// @Success 200 {array} service.RecipeThumbResponse
 // @Failure 400,404 {object} service.ErrResponse
 // @Failure 500 {object} service.ErrResponse
 // @Failure default {object} service.ErrResponse
@@ -117,15 +124,133 @@ func listRecipes(repo RecipeRepo) http.HandlerFunc {
 		}
 		responses := make([]render.Renderer, 0, len(recipes))
 		for _, rcp := range recipes {
-			dto, err := dtoFromRecipe(&rcp)
-			if err != nil {
-				render.Render(w, r, ErrUnknown(err))
-				return
-			}
-			responses = append(responses, dto)
+			thumb := thumbFromRecipe(&rcp)
+			responses = append(responses, thumb)
 		}
 		render.Status(r, http.StatusOK)
 		render.RenderList(w, r, responses)
+	}
+}
+
+// ListTrending godoc
+// @Summary List trending recipes
+// @Description List all trending recipes
+// @Accept  json
+// @Produce json
+// @Param page query int false "page number"
+// @Param limits query int false "numbers to fetch"
+// @Success 200 {array} service.RecipeThumbResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipes/trending [get]
+func listTrendingRecipes(repo RecipeRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		recipes, err := repo.List()
+		if err != nil {
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		responses := make([]render.Renderer, 0, len(recipes))
+		for _, rcp := range recipes {
+			thumb := thumbFromRecipe(&rcp)
+			responses = append(responses, thumb)
+		}
+		render.Status(r, http.StatusOK)
+		render.RenderList(w, r, responses)
+	}
+}
+
+// ListRecommend godoc
+// @Summary List recommended recipes
+// @Description List recommended recipes
+// @Accept  json
+// @Produce json
+// @Param page query int false "page number"
+// @Param limits query int false "numbers to fetch"
+// @Success 200 {array} service.RecipeThumbResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipes/recommend [get]
+func listRecommendRecipes(repo RecipeRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		recipes, err := repo.List()
+		if err != nil {
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		responses := make([]render.Renderer, 0, len(recipes))
+		for _, rcp := range recipes {
+			thumb := thumbFromRecipe(&rcp)
+			responses = append(responses, thumb)
+		}
+		render.Status(r, http.StatusOK)
+		render.RenderList(w, r, responses)
+	}
+}
+
+// ListChallenge godoc
+// @Summary List all challege recipes
+// @Description List all challenge recipes
+// @Accept  json
+// @Produce json
+// @Param page query int false "page number"
+// @Param limits query int false "numbers to fetch"
+// @Success 200 {array} service.RecipeThumbResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipes/challenge [get]
+func listChallengeRecipes(repo RecipeRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		recipes, err := repo.List()
+		if err != nil {
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		responses := make([]render.Renderer, 0, len(recipes))
+		for _, rcp := range recipes {
+			thumb := thumbFromRecipe(&rcp)
+			responses = append(responses, thumb)
+		}
+		render.Status(r, http.StatusOK)
+		render.RenderList(w, r, responses)
+	}
+}
+
+// getRecipe godoc
+// @Summary Get the detail of recipe
+// @Description Get the detail of recipe
+// @Accept  json
+// @Produce json
+// @Param recipeID path int true "recipeID"
+// @Success 200 {object} service.RecipeResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipes/{recipeID} [get]
+func getRecipe(repo RecipeRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		recipeID, err := strconv.Atoi(chi.URLParam(r, "recipeID"))
+		if err != nil {
+			logging.Errorf("error during convert URLParam recipeID, %v", err)
+			render.Render(w, r, ErrInvalidRequest(err))
+			return
+		}
+		recipe, err := repo.Get(recipeID)
+		if err != nil {
+			logging.Errorf("error during get from repo, %v", err)
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		response, err := dtoFromRecipe(recipe)
+		if err != nil {
+			logging.Errorf("error while converting to response, %v", err)
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		render.Render(w, r, response)
 	}
 }
 
@@ -158,6 +283,12 @@ func (i *RecipeRequest) Bind(r *http.Request) error {
 
 // Render renders additional paramters before encode and response
 func (i *RecipeResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	i.IsClipped = false
+	return nil
+}
+
+// Render renders additional paramters before encode and response
+func (i *RecipeThumbResponse) Render(w http.ResponseWriter, r *http.Request) error {
 	i.IsClipped = false
 	return nil
 }

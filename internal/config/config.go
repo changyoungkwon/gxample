@@ -12,7 +12,13 @@ type Config struct {
 	API        APIConfig
 	Log        LogConfig
 	Eureka     EurekaConfig
+	IgServer   IgServerConfig
 	StaticRoot string
+}
+
+// IgServerConfig contains all configurations used by IgServer
+type IgServerConfig struct {
+	URI string
 }
 
 // EurekaConfig contains all configurations used by eureka
@@ -70,6 +76,9 @@ func init() {
 			IPAdress:   viper.GetString("eureka_instance_ipaddress"),
 			Port:       viper.GetInt("eureka_instance_port"),
 			TTL:        viper.GetUint("eureka_instance_ttl"),
+		},
+		IgServer: IgServerConfig{
+			URI: viper.GetString("igserver_uri"),
 		},
 		StaticRoot: viper.GetString("static_path"),
 	}

@@ -2,9 +2,17 @@ package service
 
 import (
 	"encoding/json"
+	"math/rand"
+	"sync"
+	"time"
 
 	"github.com/changyoungkwon/gxample/internal/models"
 	"gorm.io/gorm"
+)
+
+var (
+	letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	once        sync.Once
 )
 
 // toRecipe generates recipes based on request
@@ -36,7 +44,6 @@ func dtoToRecipe(body *recipeRequestJSON, userID string) (*models.Recipe, error)
 
 // FromRecipe generates based on recipes
 func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
-	// to response
 	// tags
 	tags := make([]string, 0, len(r.Tags))
 	for _, t := range r.Tags {
@@ -62,6 +69,19 @@ func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
 		IsClipped:            false,
 		Tags:                 tags,
 	}, nil
+}
+
+// thumbFromRecipe thumbnail generates based on recipe
+func thumbFromRecipe(r *models.Recipe) *RecipeThumbResponse {
+	return &RecipeThumbResponse{
+		ID:              r.ID,
+		Title:           r.Title,
+		ImagePath:       r.ImagePath,
+		Ease:            r.Ease,
+		PreparationTime: r.PreparationTime,
+		Writer:          *dtoToUserResponse(r.Writer),
+		IsClipped:       false,
+	}
 }
 
 // ToIngredient binds request to entity
@@ -142,4 +162,17 @@ func dtoToUserResponse(u models.User) *UserResponse {
 		ImagePath:   u.ImagePath,
 		Description: u.Description,
 	}
+}
+
+// RandString generates random string with fixted length
+func RandString(n int) string {
+	once.Do(func() {
+		rand.Seed(time.Now().UnixNano())
+	})
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
