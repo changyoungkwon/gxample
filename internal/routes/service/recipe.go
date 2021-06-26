@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/changyoungkwon/gxample/internal/logging"
 	"github.com/changyoungkwon/gxample/internal/models"
@@ -28,6 +29,7 @@ func NewRecipeRouter(repo RecipeRepo) chi.Router {
 		r.Post("/", createRecipe(repo))
 	})
 	router.Get("/", listRecipes(repo))
+	router.Get("/{recipeID}", getRecipe(repo))
 	return router
 }
 
@@ -126,6 +128,41 @@ func listRecipes(repo RecipeRepo) http.HandlerFunc {
 		}
 		render.Status(r, http.StatusOK)
 		render.RenderList(w, r, responses)
+	}
+}
+
+// getRecipe godoc
+// @Summary Get the detail of recipe
+// @Description Get the detail of recipe
+// @Accept  json
+// @Produce json
+// @Param recipeID path int true "recipeID"
+// @Success 200 {object} service.RecipeResponse
+// @Failure 400,404 {object} service.ErrResponse
+// @Failure 500 {object} service.ErrResponse
+// @Failure default {object} service.ErrResponse
+// @Router /api/recipes/{recipeID} [get]
+func getRecipe(repo RecipeRepo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		recipeID, err := strconv.Atoi(chi.URLParam(r, "recipeID"))
+		if err != nil {
+			logging.Errorf("error during convert URLParam recipeID, %v", err)
+			render.Render(w, r, ErrInvalidRequest(err))
+			return
+		}
+		recipe, err := repo.Get(recipeID)
+		if err != nil {
+			logging.Errorf("error during get from repo, %v", err)
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		response, err := dtoFromRecipe(recipe)
+		if err != nil {
+			logging.Errorf("error while converting to response, %v", err)
+			render.Render(w, r, ErrUnknown(err))
+			return
+		}
+		render.Render(w, r, response)
 	}
 }
 

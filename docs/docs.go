@@ -383,6 +383,59 @@ var doc = `{
                     }
                 }
             }
+        },
+        "/api/recipes/{recipeID}": {
+            "get": {
+                "description": "Get the detail of recipe",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get the detail of recipe",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "recipeID",
+                        "name": "recipeID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/service.RecipeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/service.ErrResponse"
+                        }
+                    },
+                    "404": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/service.ErrResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/service.ErrResponse"
+                        }
+                    },
+                    "default": {
+                        "description": "",
+                        "schema": {
+                            "$ref": "#/definitions/service.ErrResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

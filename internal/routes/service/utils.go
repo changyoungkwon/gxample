@@ -2,9 +2,17 @@ package service
 
 import (
 	"encoding/json"
+	"math/rand"
+	"sync"
+	"time"
 
 	"github.com/changyoungkwon/gxample/internal/models"
 	"gorm.io/gorm"
+)
+
+var (
+	letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
+	once        sync.Once
 )
 
 // toRecipe generates recipes based on request
@@ -142,4 +150,17 @@ func dtoToUserResponse(u models.User) *UserResponse {
 		ImagePath:   u.ImagePath,
 		Description: u.Description,
 	}
+}
+
+// RandString generates random string with fixted length
+func RandString(n int) string {
+	once.Do(func() {
+		rand.Seed(time.Now().UnixNano())
+	})
+
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = letterRunes[rand.Intn(len(letterRunes))]
+	}
+	return string(b)
 }
