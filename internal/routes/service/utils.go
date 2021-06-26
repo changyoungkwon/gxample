@@ -44,7 +44,6 @@ func dtoToRecipe(body *recipeRequestJSON, userID string) (*models.Recipe, error)
 
 // FromRecipe generates based on recipes
 func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
-	// to response
 	// tags
 	tags := make([]string, 0, len(r.Tags))
 	for _, t := range r.Tags {
@@ -70,6 +69,19 @@ func dtoFromRecipe(r *models.Recipe) (*RecipeResponse, error) {
 		IsClipped:            false,
 		Tags:                 tags,
 	}, nil
+}
+
+// thumbFromRecipe thumbnail generates based on recipe
+func thumbFromRecipe(r *models.Recipe) *RecipeThumbResponse {
+	return &RecipeThumbResponse{
+		ID:              r.ID,
+		Title:           r.Title,
+		ImagePath:       r.ImagePath,
+		Ease:            r.Ease,
+		PreparationTime: r.PreparationTime,
+		Writer:          *dtoToUserResponse(r.Writer),
+		IsClipped:       false,
+	}
 }
 
 // ToIngredient binds request to entity

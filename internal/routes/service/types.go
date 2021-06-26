@@ -91,6 +91,17 @@ type RecipeResponse struct {
 	Tags                 []string                      `json:"tags"`
 }
 
+// RecipeThumbResponse wraps lsit responses
+type RecipeThumbResponse struct {
+	ID              uint         `json:"id"`
+	Title           string       `json:"title"`
+	PreparationTime int          `json:"preparation_time"`
+	Ease            string       `json:"ease"`
+	ImagePath       string       `json:"image_path"`
+	Writer          UserResponse `json:"writer"`
+	IsClipped       bool         `json:"is_clipped"`
+}
+
 // UserResponse wraps response
 type UserResponse struct {
 	Name        string `json:"name"`
