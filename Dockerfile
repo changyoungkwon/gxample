@@ -26,7 +26,7 @@ VOLUME ["/usr/app/config.yml", "/usr/app/static","/usr/app/docs"]
 ENV TZ=Asia/Seoul
 RUN apk add --update --no-cache tzdata
 WORKDIR /usr/app
-COPY --from=builder /src/docs/swagger.yaml ./docs/api-docs
+COPY --from=builder /src/docs/swagger.json ./docs/api-docs
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs
 COPY --from=builder /src/out/gxample ./
 
