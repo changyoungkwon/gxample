@@ -39,7 +39,6 @@ func attachFileServer(r chi.Router, path string, root http.FileSystem) {
 // @version 1.0
 // @description cookerserver
 // @contact.name changyoung
-// @basePath cooker
 func Router() http.Handler {
 	router := chi.NewRouter()
 
